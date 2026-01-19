@@ -1,0 +1,89 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DatastoreService = game:GetService("DataStoreService")
+local TeleportService = game:GetService("TeleportService")
+local Debris = game:GetService("Debris")
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local MessagingService = game:GetService("MessagingService")
+
+local ModerationDatastore = DatastoreService:GetGlobalDataStore("ModerationStore")
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local AdminAssets = ReplicatedStorage:WaitForChild("AdminAssets")
+local CellDebris = workspace:WaitForChild("CellDebris")
+
+local Cell = AdminAssets.Cell
+
+local ModeratorAction = Remotes:WaitForChild("ModeratorAction")
+
+local AuthorizedUsers = {
+	2030186803,
+	5712525666,
+	8093693849
+}
+
+local shuttingDown = false
+
+local function CheckIfAuthorized(AdminPlayer: Player)
+	if table.find(AuthorizedUsers, AdminPlayer.UserId) then
+		return true
+	else
+		return false
+	end
+end
+
+ModeratorAction.OnServerEvent:Connect(function(AdminPlayer: Player, command: string, targetId, value)
+	if CheckIfAuthorized(AdminPlayer) then
+		local AdminChar = AdminPlayer.Character or AdminPlayer.CharacterAdded:Wait()
+		local AdminHRP = AdminChar:FindFirstChild("HumanoidRootPart")
+		local targetPlayer
+		local targetChar
+		local targetHRP
+		local targetHumanoid
+		
+		if tonumber(targetId) then
+			targetPlayer = Players:GetPlayerByUserId(targetId)
+			targetChar = targetPlayer.Character or targetPlayer.CharacterAdded:Wait()
+			targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
+			targetHumanoid = targetChar:FindFirstChildOfClass("Humanoid")
+			
+			if command == "KICK" then
+				if targetPlayer then
+					targetPlayer:Kick("You have been kicked by the admin: "..AdminPlayer.Name)
+				end
+			elseif command == "FREEZE" then
+				targetHRP.Anchored = true
+			elseif command == "UNFREEZE" then
+				targetHRP.Anchored = false
+			elseif command == "GOTO" then
+				AdminHRP.CFrame = targetHRP.CFrame
+			elseif command == "BRING" then
+				tart.CFrame = targetHRP.CFrame
+			elseif command == "JAIL" and tonumber(value) then
+				local jailed = {}
+				local cellClone = Cell:Clone()
+				cellClone.Parent = CellDebris
+				local SpawnPart = cellClone.SpawnPart
+				
+				if table.find(jailed, targetId) then
+					return
+				end
+				
+				table.insert(jailed, targetId)
+				cellClone.Parent = workspace
+				
+				targetHRP.CFrame = SpawnPart.CFrame
+				targetPlayer.RespawnLocation = SpawnPart
+				
+				task.wait(value)
+				
+				table.remove(jailed, targetId)
+				
+				Debris:AddItem(cellClone, 0.1)
+				targetPlayer.RespawnLocation = workspace.SpawnLocation
+				
+				print("Player is released")
+			end
+		end
+	end
+end)
