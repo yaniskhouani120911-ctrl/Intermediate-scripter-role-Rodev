@@ -90,10 +90,10 @@ function updatePlayers()
 end
 
 function CreateAnnouncement()
-	local TransparencyInfo = TweenInfo(.7, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
+	local TransparencyInfo = TweenInfo.new(.7, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
 	local TransparencyTween = TweenService:Create(AnnouncementTemplate, TransparencyInfo, {BackgroundTransparency = 0})
 	local TextTransparencyInfo = TweenInfo.new(.7, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
-	local TextTransparencyTween = TweenService:Create(AnnouncementTemplate, TextTransparencyInfo, {TextTrasparency = 0.7})
+	local TextTransparencyTween = TweenService:Create(AnnouncementTemplate, TextTransparencyInfo, {TextTransparency = 0.7})
 	
 	TransparencyTween:Play()
 	TextTransparencyTween:Play()
@@ -144,34 +144,82 @@ end)
 Players.PlayerAdded:Connect(updatePlayers)
 Players.PlayerRemoving:Connect(updatePlayers)
 
-local targetPlayer = Players:GetPlayerByUserId(tonumber(SelectedPlayerUserID.Text))
-
 --// Server connections
 KickButton.MouseButton1Click:Connect(function()
 	ModeratorAction:FireServer("KICK", tonumber(SelectedPlayerUserID.Text), nil)
 	
 	CreateAnnouncement()
-	AnnouncementTemplate.Text = "Used command the command: KICK on the player: "..targetPlayer.Name 
+	AnnouncementTemplate.Text = "Used command the command"
+
+	task.wait(2)
+
+	AnnouncementTemplate.TextTransparency = 1
+	AnnouncementTemplate.BackgroundTransparency = 1
 end)
 
 FreezeButton.MouseButton1Click:Connect(function()
 	ModeratorAction:FireServer("FREEZE", tonumber(SelectedPlayerUserID.Text), nil)
+	
+	CreateAnnouncement()
+	AnnouncementTemplate.Text = "Used command the command: FREEZE"
+
+	task.wait(2)
+
+	AnnouncementTemplate.TextTransparency = 1
+	AnnouncementTemplate.BackgroundTransparency = 1
+
+	task.wait(2)
+
+	AnnouncementTemplate.TextTransparency = 1
+	AnnouncementTemplate.BackgroundTransparency = 1
 end)
 
 UnfreezeButton.MouseButton1Click:Connect(function()
 	ModeratorAction:FireServer("UNFREEZE", tonumber(SelectedPlayerUserID.Text), nil)
+	
+	CreateAnnouncement()
+	AnnouncementTemplate.Text = "Used command the command: UNFREEZE"
+
+	task.wait(2)
+
+	AnnouncementTemplate.TextTransparency = 1
+	AnnouncementTemplate.BackgroundTransparency = 1
 end)
 
 GotoButton.MouseButton1Click:Connect(function()
 	ModeratorAction:FireServer("GOTO", tonumber(SelectedPlayerUserID.Text), nil)
+	
+	CreateAnnouncement()
+	AnnouncementTemplate.Text = "Used command the command: GOTO" 
+
+	task.wait(2)
+
+	AnnouncementTemplate.TextTransparency = 1
+	AnnouncementTemplate.BackgroundTransparency = 1
 end)
 
 BringButton.MouseButton1Click:Connect(function()
 	ModeratorAction:FireServer("BRING", tonumber(SelectedPlayerUserID.Text), nil)
+	
+	CreateAnnouncement()
+	AnnouncementTemplate.Text = "Used command the command: BRING"
+	
+	task.wait(2)
+
+	AnnouncementTemplate.TextTransparency = 1
+	AnnouncementTemplate.BackgroundTransparency = 1
 end)
 
 JailButton.MouseButton1Click:Connect(function()
 	ModeratorAction:FireServer("JAIL", tonumber(SelectedPlayerUserID.Text), 10)
+	
+	CreateAnnouncement()
+	AnnouncementTemplate.Text = "Used command the command: JAIL"
+	
+	task.wait(2)
+	
+	AnnouncementTemplate.TextTransparency = 1
+	AnnouncementTemplate.BackgroundTransparency = 1
 end)
 --// Always updates the UIs
 updateInfoUis()
