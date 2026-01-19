@@ -1,0 +1,178 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local LittleSizeTweenInfo = TweenInfo.new(.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+
+local AdminAssets = ReplicatedStorage:WaitForChild("AdminAssets")
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+local player = Players.LocalPlayer
+local playerId = player.UserId
+
+local ModeratorAction = Remotes:WaitForChild("ModeratorAction")
+
+local AdminPanelGui = script.Parent
+
+local MainFrame = AdminPanelGui:WaitForChild("MainFrame")
+local CommandsFrame = MainFrame:WaitForChild("CommandsFrame")
+local InfoFrame = MainFrame:WaitForChild("InfoFrame")
+local PlayerList = InfoFrame:WaitForChild("PlayerList")
+
+local PlayerImage = InfoFrame:WaitForChild("PlayerImage")
+local SelectedPlayerImage = InfoFrame:WaitForChild("SelectedUser")
+local SelectedPlayerAccountAge = InfoFrame:WaitForChild("SelectedPlayerAccountAge")
+local SelectedPlayerUserName = InfoFrame:WaitForChild("SelectedPlayerUsername")
+local SelectedPlayerDisplayName = InfoFrame:WaitForChild("SelectedPlayerDisplayName")
+local SelectedPlayerUserID = InfoFrame:WaitForChild("SelectedPlayerUserID")
+local AnnouncementTemplate = AdminPanelGui:WaitForChild("AnnouncementTemplate")
+
+local Username = InfoFrame:WaitForChild("Username")
+local DisplayName = InfoFrame:WaitForChild("DisplayName")
+local Greeting = InfoFrame:WaitForChild("Greeting")
+local AccountAge = InfoFrame:WaitForChild("AccountAge")
+
+local MobileButton = AdminPanelGui:WaitForChild("MobileButton")
+local KickButton = CommandsFrame:WaitForChild("KickButton")
+local FreezeButton = CommandsFrame:WaitForChild("FreezeButton")
+local UnfreezeButton = CommandsFrame:WaitForChild("UnfreezeButton")
+local GotoButton = CommandsFrame:WaitForChild("GotoButton")
+local BringButton = CommandsFrame:WaitForChild("BringButton")
+local JailButton = CommandsFrame:WaitForChild("JailButton")
+
+local CloseButton = MainFrame:WaitForChild("CloseButton")
+
+local AuthorizedUsers = {
+	2030186803,
+	5712525666,
+	8093693849
+}
+
+if UserInputService.TouchEnabled and table.find(AuthorizedUsers, playerId) then
+	MobileButton.Visible = true
+else
+	MobileButton.Visible = false
+end
+
+if not table.find(AuthorizedUsers, playerId) then
+	AdminPanelGui.Enabled = false
+	print("User not authorized")
+end
+
+function updatePlayers()
+	for i, child in pairs(PlayerList:GetChildren()) do
+		if child:IsA("TextButton") then
+			child:Destroy()
+		end
+	end
+
+	for i, plr in pairs(game.Players:GetPlayers()) do
+
+		local btn = script.PlayerButton:Clone()
+
+		local name = plr.Name
+		btn.PlayerName.Text = name
+
+		local image = game.Players:GetUserThumbnailAsync(plr.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+		btn.PlayerImage.Image = image
+
+		btn.MouseButton1Click:Connect(function()
+			SelectedPlayerImage.Image = image
+			SelectedPlayerAccountAge.Text = plr.AccountAge
+			SelectedPlayerDisplayName.Text = plr.DisplayName
+			SelectedPlayerUserName.Text = plr.Name
+			SelectedPlayerUserID.Text = plr.UserId
+		end)
+
+		btn.Parent = PlayerList
+	end
+end
+
+function CreateAnnouncement()
+	local TransparencyInfo = TweenInfo(.7, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
+	local TransparencyTween = TweenService:Create(AnnouncementTemplate, TransparencyInfo, {BackgroundTransparency = 0})
+	local TextTransparencyInfo = TweenInfo.new(.7, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
+	local TextTransparencyTween = TweenService:Create(AnnouncementTemplate, TextTransparencyInfo, {TextTrasparency = 0.7})
+	
+	TransparencyTween:Play()
+	TextTransparencyTween:Play()
+end
+
+function updateInfoUis()
+	local image = Players:GetUserThumbnailAsync(playerId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+	PlayerImage.Image = image
+	
+	Username.Text = player.Name
+	DisplayName.Text = player.DisplayName
+	Greeting.Text = "Welcome, ".. player.DisplayName .. " How is your day going?"
+	AccountAge.Text = "Account Age: ".. player.AccountAge 
+	
+	--// Petit truc pour maman
+	if player.Name == "gvbnjfhgjerhg" then
+		DisplayName.Text = "TatisleBGdu71MLM"
+	end
+	-----------------------------------------
+end
+
+local function OpenPanel()
+	AdminPanelGui.Enabled = true
+end
+
+local function ClosePanel()
+	AdminPanelGui.Enabled = false
+end
+
+--// Connections
+CloseButton.MouseButton1Click:Connect(ClosePanel)
+
+UserInputService.InputBegan:Connect(function(input, IsTyping)
+	if IsTyping then return end
+	
+	if input.KeyCode == Enum.KeyCode.B then
+		OpenPanel()
+		updateInfoUis()
+	end
+end)
+
+MobileButton.TouchTap:Connect(function()
+	if table.find(AuthorizedUsers, playerId) then
+		OpenPanel()
+	end
+end)
+
+Players.PlayerAdded:Connect(updatePlayers)
+Players.PlayerRemoving:Connect(updatePlayers)
+
+local targetPlayer = Players:GetPlayerByUserId(tonumber(SelectedPlayerUserID.Text))
+
+--// Server connections
+KickButton.MouseButton1Click:Connect(function()
+	ModeratorAction:FireServer("KICK", tonumber(SelectedPlayerUserID.Text), nil)
+	
+	CreateAnnouncement()
+	AnnouncementTemplate.Text = "Used command the command: KICK on the player: "..targetPlayer.Name 
+end)
+
+FreezeButton.MouseButton1Click:Connect(function()
+	ModeratorAction:FireServer("FREEZE", tonumber(SelectedPlayerUserID.Text), nil)
+end)
+
+UnfreezeButton.MouseButton1Click:Connect(function()
+	ModeratorAction:FireServer("UNFREEZE", tonumber(SelectedPlayerUserID.Text), nil)
+end)
+
+GotoButton.MouseButton1Click:Connect(function()
+	ModeratorAction:FireServer("GOTO", tonumber(SelectedPlayerUserID.Text), nil)
+end)
+
+BringButton.MouseButton1Click:Connect(function()
+	ModeratorAction:FireServer("BRING", tonumber(SelectedPlayerUserID.Text), nil)
+end)
+
+JailButton.MouseButton1Click:Connect(function()
+	ModeratorAction:FireServer("JAIL", tonumber(SelectedPlayerUserID.Text), 10)
+end)
+--// Always updates the UIs
+updateInfoUis()
+updatePlayers()
